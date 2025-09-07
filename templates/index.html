@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Resume Reviewer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papb..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+  body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f0f4f8, #e2e8f0); }
+  .container-box { background-color: #ffffffcc; backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); transition: all 0.3s ease; }
+  .container-box:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+  .text-area { border: 1px solid #d1d5db; border-radius: 14px; padding: 14px; font-size: 14px; resize: none; transition: all 0.3s ease; }
+  .text-area:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+  .btn { padding: 12px 28px; border-radius: 14px; font-weight: 600; transition: all 0.3s ease; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+  .loading-animation { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .tab-button { padding: 12px 24px; font-weight: 600; cursor: pointer; border-radius: 12px 12px 0 0; transition: all 0.3s ease; }
+  .tab-button.active { background: linear-gradient(90deg,#3b82f6,#06b6d4); color: #fff; }
+  .prose strong { font-weight: 700; color: #1e3a8a; }
+  mark.strength { background: linear-gradient(90deg,#d9f99d,#86efac); padding:2px 5px; border-radius:6px; font-style:normal; }
+  mark.weakness { background: linear-gradient(90deg,#fecaca,#f87171); padding:2px 5px; border-radius:6px; font-style:normal; }
+  mark.strength:hover::after, mark.weakness:hover::after { content: attr(title); position: absolute; background: #111; color: #fff; padding: 4px 8px; border-radius:6px; font-size:12px; margin-top:2px; white-space:nowrap; z-index:50; }
+</style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+<!-- Home Section -->
+<section class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-24 px-8 rounded-b-3xl shadow-lg">
+  <div class="max-w-6xl mx-auto text-center">
+    <h1 class="text-5xl font-bold mb-6">AI Resume Reviewer</h1>
+    <p class="text-xl mb-8">Get instant insights and improve your resume with AI-powered feedback. Tailor your resume for any job description.</p>
+    <a href="#reviewSection" class="btn bg-white text-blue-600 hover:bg-gray-100 font-bold text-lg transition-all">Start Reviewing</a>
+  </div>
+</section>
+
+<!-- Main Review Section -->
+<section id="reviewSection" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12 px-4">
+
+<!-- Input Section -->
+<div class="container-box p-8 flex flex-col space-y-6">
+  <h2 class="text-3xl font-bold text-gray-800 text-center mb-4">Your Resume</h2>
+  <p class="text-gray-600 text-center mb-6">Paste your resume, upload a file, or provide a job description for a tailored review.</p>
+
+  <div>
+    <label for="jobRoleInput" class="block text-sm font-medium text-gray-700 mb-2">Target Job Role <span class="text-red-500">*</span>:</label>
+    <input type="text" id="jobRoleInput" class="text-area w-full" placeholder="e.g., Data Scientist, Product Manager">
+  </div>
+
+  <div class="space-y-4">
+    <label class="block text-sm font-medium text-gray-700">Upload Resume (PDF/TXT) or Paste Text <span class="text-red-500">*</span>:</label>
+    <div class="flex items-center space-x-2">
+      <input type="file" id="resumeFile" class="block w-full text-sm text-gray-500
+          file:mr-4 file:py-2 file:px-4
+          file:rounded-full file:border-0
+          file:text-sm file:font-semibold
+          file:bg-blue-50 file:text-blue-700
+          hover:file:bg-blue-100 transition-colors duration-200"
+          accept=".pdf,.txt">
+      <button id="clearFileBtn" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2 px-3 rounded-full text-xs">Clear</button>
+    </div>
+    <div class="relative flex items-center py-2">
+      <div class="flex-grow border-t border-gray-300"></div>
+      <span class="flex-shrink mx-4 text-gray-500 text-sm">or</span>
+      <div class="flex-grow border-t border-gray-300"></div>
+    </div>
+    <textarea id="resumeInput" class="text-area w-full h-72" placeholder="Paste your resume text here..."></textarea>
+  </div>
+
+  <div>
+    <label for="jobDescInput" class="block text-sm font-medium text-gray-700 mb-2">Paste a Job Description (Optional):</label>
+    <textarea id="jobDescInput" class="text-area w-full h-48" placeholder="Paste the job description..."></textarea>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-4 mt-4">
+    <button id="analyzeBtn" class="btn bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex-1 flex justify-center items-center">
+      <span id="analyzeBtnText">Analyze Resume</span>
+      <span id="analyzeLoadingSpinner" class="hidden loading-animation ml-3"></span>
+    </button>
+    <button id="generateBtn" class="btn bg-gradient-to-r from-green-500 to-lime-500 text-white flex-1 flex justify-center items-center">
+      <span id="generateBtnText">Generate Polished Resume</span>
+      <span id="generateLoadingSpinner" class="hidden loading-animation ml-3"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Results Section -->
+<div class="container-box p-8 flex flex-col space-y-4">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-bold text-gray-800">Results</h2>
+    <a id="exportPdfLink" class="text-blue-600 text-xs underline cursor-pointer hover:text-blue-800">Export as PDF</a>
+  </div>
+
+  <div class="flex space-x-2 overflow-x-auto mb-4">
+    <button id="tab-analysis" class="tab-button active flex-1 text-center">Analysis</button>
+    <button id="tab-highlight" class="tab-button flex-1 text-center">Highlights</button>
+    <button id="tab-generation" class="tab-button flex-1 text-center">Polished Resume</button>
+  </div>
+
+  <div id="scoresArea" class="space-y-3"></div>
+
+  <div id="analysisArea" class="prose max-w-none text-gray-700 overflow-y-auto h-[500px] text-sm p-4 bg-gray-50 rounded-xl shadow-inner">
+    <p class="text-center text-gray-500 mt-20">Your resume analysis will appear here. Please wait...</p>
+  </div>
+  <div id="highlightArea" class="prose max-w-none text-gray-700 overflow-y-auto h-[500px] text-sm p-4 bg-gray-50 rounded-xl shadow-inner hidden whitespace-pre-wrap">
+    <p class="text-center text-gray-500 mt-20">Your highlighted resume will appear here.</p>
+  </div>
+  <div id="generatedResultArea" class="prose max-w-none text-gray-700 overflow-y-auto h-[500px] text-sm p-4 bg-gray-50 rounded-xl shadow-inner hidden">
+    <p class="text-center text-gray-500 mt-20">Your polished resume will appear here.</p>
+  </div>
+
+  <div id="messageBox" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
+    <span id="messageText"></span>
+  </div>
+</div>
+</section>
+
+<div class="fixed bottom-0 w-full p-4 text-center text-xs text-gray-500 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm">
+  <p>This tool uses AI for resume feedback. Data is not stored on the server. <a href="#" class="underline">Privacy Policy</a></p>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resumeInput = document.getElementById('resumeInput');
+            const resumeFile = document.getElementById('resumeFile');
+            const clearFileBtn = document.getElementById('clearFileBtn');
+            const jobRoleInput = document.getElementById('jobRoleInput');
+            const jobDescInput = document.getElementById('jobDescInput');
+            
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const analyzeBtnText = document.getElementById('analyzeBtnText');
+            const analyzeLoadingSpinner = document.getElementById('analyzeLoadingSpinner');
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const generateBtnText = document.getElementById('generateBtnText');
+            const generateLoadingSpinner = document.getElementById('generateLoadingSpinner');
+
+            const scoresArea = document.getElementById('scoresArea');
+            const analysisArea = document.getElementById('analysisArea');
+            const highlightArea = document.getElementById('highlightArea');
+            const generatedResultArea = document.getElementById('generatedResultArea');
+
+            const tabAnalysis = document.getElementById('tab-analysis');
+            const tabHighlight = document.getElementById('tab-highlight');
+            const tabGeneration = document.getElementById('tab-generation');
+
+            const exportPdfLink = document.getElementById('exportPdfLink');
+
+            const HISTORY_KEY = 'resumeReviewHistoryV1';
+            function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
+            function saveHistory(history) { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
+            function addHistoryEntry(jobRole, scores) { const history = loadHistory(); history.push({ ts: Date.now(), jobRole, scores }); saveHistory(history); }
+            function getPrevScoresForRole(jobRole) { const history = loadHistory().filter(h => h.jobRole === jobRole); if (history.length < 1) return null; return history[history.length - 1].scores; }
+
+            function resetResultsPlaceholders() {
+                scoresArea.innerHTML = '';
+                analysisArea.innerHTML = '<p class="text-center text-gray-500 mt-20">Your resume analysis will appear here. It may take a few moments to generate. Please be patient.</p>';
+                highlightArea.innerHTML = '<p class="text-center text-gray-500 mt-20">Your highlighted resume will appear here.</p>';
+                generatedResultArea.innerHTML = '<p class="text-center text-gray-500 mt-20">Your polished resume will appear here.</p>';
+            }
+            function hideAllMessages() { const messageBox = document.getElementById('messageBox'); if (messageBox) messageBox.classList.add('hidden'); }
+            function setButtonState(btn, textSpan, spinner, isLoading) {
+                btn.disabled = isLoading;
+                if(isLoading) { textSpan.textContent = 'Loading...'; spinner.classList.remove('hidden'); } 
+                else { textSpan.textContent = textSpan.dataset.originalText; spinner.classList.add('hidden'); }
+            }
+            analyzeBtnText.dataset.originalText = analyzeBtnText.textContent;
+            generateBtnText.dataset.originalText = generateBtnText.textContent;
+
+            const tabButtons = [tabAnalysis, tabHighlight, tabGeneration];
+            const tabContents = [analysisArea, highlightArea, generatedResultArea];
+            function switchTab(activeTab) {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.add('hidden'));
+                activeTab.classList.add('active');
+                if (activeTab === tabAnalysis) analysisArea.classList.remove('hidden');
+                if (activeTab === tabHighlight) highlightArea.classList.remove('hidden');
+                if (activeTab === tabGeneration) generatedResultArea.classList.remove('hidden');
+            }
+            tabAnalysis.addEventListener('click', () => switchTab(tabAnalysis));
+            tabHighlight.addEventListener('click', () => switchTab(tabHighlight));
+            tabGeneration.addEventListener('click', () => switchTab(tabGeneration));
+
+            resumeFile.addEventListener('change', () => {
+                if (resumeFile.files.length > 0) {
+                    resumeInput.disabled = true;
+                    resumeInput.placeholder = 'Text input is disabled when a file is selected.';
+                    resumeInput.value = '';
+                    clearFileBtn.classList.remove('hidden');
+                } else { resumeInput.disabled = false; resumeInput.placeholder = 'Paste your resume text here...'; clearFileBtn.classList.add('hidden'); }
+                resetResultsPlaceholders(); switchTab(tabAnalysis);
+            });
+            clearFileBtn.addEventListener('click', () => {
+                resumeFile.value = ''; resumeFile.dispatchEvent(new Event('change'));
+                resetResultsPlaceholders(); switchTab(tabAnalysis);
+            });
+            resumeInput.addEventListener('input', () => { resumeFile.disabled = resumeInput.value.trim() !== ''; resetResultsPlaceholders(); switchTab(tabAnalysis); });
+            function getResumeData() { if (resumeFile.files.length > 0) return resumeFile.files[0]; return resumeInput.value.trim(); }
+
+            function convertMarkdownToHtml(text) {
+                if (!text) return '';
+                return text
+                    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
+                    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mb-3">$1</h2>')
+                    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+                    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/gim, '<li>$1</li>')
+                    .replace(/__(.*?)__/gim, '<em>$1</em>')
+                    .replace(/```(markdown)?\n?([\s\S]*?)```/g, '<pre class="bg-gray-100 p-2 rounded"><code>$2</code></pre>')
+                    .replace(/\n/g, '<br>');
+            }
+
+            function displayScores(scores) {
+                if (!scores) { scoresArea.innerHTML = ''; return; }
+                const scoreMapping = { ats_compatibility: "ATS Compatibility", clarity_readability: "Clarity & Readability", impact_achievements: "Impact & Achievements", relevance_to_jd: "Relevance to JD" };
+                const prev = getPrevScoresForRole(jobRoleInput.value.trim());
+                let scoresHtml = '<div class="space-y-3">';
+                for (const key in scores) { if (Object.hasOwnProperty.call(scores, key)) {
+                    const score = scores[key] || 0;
+                    const label = scoreMapping[key] || key;
+                    const percentage = score * 10;
+                    let barColor = 'bg-green-500';
+                    if (percentage < 40) barColor = 'bg-red-500'; else if (percentage < 70) barColor = 'bg-yellow-500';
+                    scoresHtml += `<div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-xs font-medium text-gray-700">${label}</span>
+                            <span class="text-xs font-medium text-gray-700">${score}/10</span>
+                        </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="${barColor} h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>`;
+                }}
+                scoresHtml += '</div>';
+                scoresArea.innerHTML = scoresHtml;
+            }
+
+            analyzeBtn.addEventListener('click', async () => {
+                const resume = getResumeData(); const jobRole = jobRoleInput.value.trim(); const jobDescription = jobDescInput.value.trim();
+                if (!resume) { analysisArea.innerHTML = `<p class="text-red-500">Please provide your resume by pasting text or uploading a file.</p>`; switchTab(tabAnalysis); return; }
+                if (!jobRole) { analysisArea.innerHTML = `<p class="text-red-500">Please enter a target job role.</p>`; switchTab(tabAnalysis); return; }
+                resetResultsPlaceholders(); hideAllMessages(); setButtonState(analyzeBtn, analyzeBtnText, analyzeLoadingSpinner, true); generateBtn.disabled = true;
+
+                const formData = new FormData();
+                if (typeof resume === 'string') formData.append('resume', resume); else formData.append('resumeFile', resume);
+                formData.append('job_role', jobRole); formData.append('job_description', jobDescription);
+
+                try {
+                    const analyzeUrl = new URL('/analyze', window.location.origin);
+                    const response = await fetch(analyzeUrl, { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Something went wrong with the API.');
+
+                    displayScores(data.scores);
+                    analysisArea.innerHTML = convertMarkdownToHtml(data.analysis || '');
+                    highlightArea.innerHTML = data.highlighted_text || '<p class="text-red-500">Error: Missing highlighted text.</p>';
+
+                    addHistoryEntry(jobRole, data.scores);
+                    switchTab(tabAnalysis);
+                } catch (error) {
+                    console.error('Error:', error); analysisArea.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`; switchTab(tabAnalysis);
+                } finally {
+                    setButtonState(analyzeBtn, analyzeBtnText, analyzeLoadingSpinner, false);
+                    generateBtn.disabled = false;
+                }
+            });
+
+            generateBtn.addEventListener('click', async () => {
+                const resume = getResumeData(); const jobRole = jobRoleInput.value.trim();
+                if (!resume) { generatedResultArea.innerHTML = `<p class="text-red-500">Please provide your resume by pasting text or uploading a file.</p>`; switchTab(tabGeneration); return; }
+                if (!jobRole) { generatedResultArea.innerHTML = `<p class="text-red-500">Please enter a target job role for resume generation.</p>`; switchTab(tabGeneration); return; }
+
+                generatedResultArea.innerHTML = ''; hideAllMessages();
+                setButtonState(generateBtn, generateBtnText, generateLoadingSpinner, true); analyzeBtn.disabled = true;
+
+                const formData = new FormData();
+                if (typeof resume === 'string') formData.append('resume', resume); else formData.append('resumeFile', resume);
+                formData.append('job_role', jobRole);
+
+                try {
+                    const generateUrl = new URL('/generate', window.location.origin);
+                    const response = await fetch(generateUrl, { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Something went wrong with the API.');
+
+                    generatedResultArea.innerHTML = convertMarkdownToHtml(data.polishedResume);
+                    switchTab(tabGeneration);
+                } catch (error) {
+                    console.error('Error:', error);
+                    generatedResultArea.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                    switchTab(tabGeneration);
+                } finally {
+                    setButtonState(generateBtn, generateBtnText, generateLoadingSpinner, false);
+                    analyzeBtn.disabled = false;
+                }
+            });
+
+            exportPdfLink.addEventListener('click', () => {
+                const jobRole = jobRoleInput.value.trim() || 'N/A';
+                const content = `
+                    <div style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding: 24px;">
+                        <h1 style="font-size: 22px; margin-bottom: 8px;">AI Resume Review</h1>
+                        <div style="font-size: 12px; color: #555; margin-bottom: 16px;">Target Role: ${jobRole} • ${new Date().toLocaleString()}</div>
+                        <h2 style="font-size: 18px; margin: 16px 0 6px;">Scores</h2>${scoresArea.innerHTML || '<div style="color:#999;">No scores yet.</div>'}
+                        <h2 style="font-size: 18px; margin: 16px 0 6px;">Analysis</h2>${analysisArea.innerHTML || '<div style="color:#999;">No analysis yet.</div>'}
+                        <h2 style="font-size: 18px; margin: 16px 0 6px;">Highlighted</h2>${highlightArea.innerHTML || '<div style="color:#999;">No highlights yet.</div>'}
+                        <h2 style="font-size: 18px; margin: 16px 0 6px;">Polished Resume</h2>${generatedResultArea.innerHTML || '<div style="color:#999;">No generated resume yet.</div>'}
+                    </div>
+                `;
+                const win = window.open('', '_blank');
+                win.document.write(`<html><head><title>AI Resume Review</title></head><body>${content}</body></html>`);
+                win.document.close(); win.focus(); win.print();
+            });
+        });
+    </script>
+</body>
+</html>
