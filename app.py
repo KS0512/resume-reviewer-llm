@@ -156,6 +156,15 @@ def generate_resume():
         print(f"API Error in /generate: {e}")
         return jsonify({"error": f"Failed to generate resume. An API error occurred. Details: {str(e)}"}), 500
 
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# Optional: handle favicon requests to avoid errors
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204  # No Content
+
 if __name__ == '__main__':
     # Keep original behavior
     app.run(host='0.0.0.0', port=5000, debug=True)
