@@ -1,16 +1,16 @@
 AI Resume Reviewer
 
-A web-based SaaS application that leverages **Google Gemini AI** to analyze and improve resumes.  
-The app provides detailed feedback on **ATS compatibility, clarity, impact, and relevance**, and also generates a **polished resume** tailored to the target job role.
+A web-based SaaS application that leverages Google Gemini AI to analyze and improve resumes.  
+The app provides detailed feedback on ATS compatibility, clarity, impact, and relevance, and also generates a polished resume tailored to the target job role.
 
 Features
 
-- Upload resume as **text** or **PDF**
-- Get **ATS, clarity, impact, and relevance scores** (out of 10)
-- Receive a **section-wise analysis** with strengths, weaknesses, and suggestions
-- **Highlights resume text** (strengths & gaps with hover explanations)
-- Compare **resume vs job description**
-- Generate a **polished professional resume** tailored to a specific role
+- Upload resume as text or PDF
+- Get ATS, clarity, impact, and relevance scores (out of 10)
+- Receive a section-wise analysis with strengths, weaknesses, and suggestions
+- Highlights resume text (strengths & gaps with hover explanations)
+- Compare resume vs job description
+- Generate a polished professional resume tailored to a specific role
 - Clean and modern UI with hover tooltips for highlights
 
 Tech Stack
