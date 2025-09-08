@@ -131,7 +131,7 @@ Team Members
 - [Khilna Shah](https://github.com/ks0512)  
 - [Leema B Jacob](https://github.com/leemzz) 
 - [Kavinithi Sera](https://github.com/kavinithi-sera) 
-- Shweta Yadav
+- [Shweta Yadav](https://github.com/Shweta-learner3)
 
 Notes
 
