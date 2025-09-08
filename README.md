@@ -128,12 +128,13 @@ Generate a polished resume for a given job role.
 
 Team Members
 
-- [Khilna Shah](https://github.com/your-username)  
-- Leema B Jacob
-- Kavinithi Sera
+- [Khilna Shah](https://github.com/ks0512)  
+- [Leema B Jacob](https://github.com/leemzz) 
+- [Kavinithi Sera](https://github.com/kavinithi-sera) 
 - Shweta Yadav
 
-## ⚠️ Notes
+Notes
+
 - Render apps may sleep after inactivity, UptimeRobot is used to keep it alive.  
 - Ensure resumes are text-based PDFs (not scanned images).  
 - API quota depends on Gemini API key limits.
